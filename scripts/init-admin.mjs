@@ -6,13 +6,13 @@ import path from 'path';
 const require = createRequire(import.meta.url);
 const { createClient } = require('@supabase/supabase-js');
 
-// Parse .env.local manually to get credentials
-const envPath = path.resolve('c:/Users/ss/Desktop/mito/.env.local');
-let supabaseUrl = '';
-let serviceRoleKey = '';
-let adminEmail = '';
-let adminPassword = '';
-let adminName = '';
+// Parse .env.local manually to get credentials if available
+const envPath = path.resolve('.env.local');
+let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+let serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let adminEmail = process.env.ADMIN_EMAIL || '';
+let adminPassword = process.env.ADMIN_PASSWORD || '';
+let adminName = process.env.ADMIN_NAME || '';
 
 if (fs.existsSync(envPath)) {
   try {
