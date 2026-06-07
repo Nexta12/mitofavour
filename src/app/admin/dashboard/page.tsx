@@ -72,6 +72,14 @@ export default function AdminDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Custom Delete Modal State
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    type: 'product' | 'user' | 'banner';
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Form Fields
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -321,9 +329,8 @@ export default function AdminDashboard() {
 
   // Delete banner
   const handleDeleteBanner = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this banner?')) return;
-    
     setBannersLoading(true);
+    setIsDeleting(true);
     try {
       const { error: deleteError } = await supabase
         .from('banners')
@@ -331,11 +338,13 @@ export default function AdminDashboard() {
         .eq('id', id);
       if (deleteError) throw deleteError;
       fetchBanners();
+      setDeleteTarget(null);
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'Failed to delete banner.');
     } finally {
       setBannersLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -394,12 +403,9 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this admin user?')) {
-      return;
-    }
-
     try {
       setUsersLoading(true);
+      setIsDeleting(true);
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
@@ -413,11 +419,13 @@ export default function AdminDashboard() {
       }
 
       setAdminUsers(adminUsers.filter((u) => u.id !== userId));
+      setDeleteTarget(null);
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'Failed to delete user.');
     } finally {
       setUsersLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -563,10 +571,7 @@ export default function AdminDashboard() {
 
   // Delete product handler
   const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-      return;
-    }
-
+    setIsDeleting(true);
     try {
       const { error: deleteError } = await supabase
         .from('products')
@@ -576,9 +581,12 @@ export default function AdminDashboard() {
       if (deleteError) throw deleteError;
 
       setProducts(products.filter((p) => p.id !== productId));
+      setDeleteTarget(null);
     } catch (err: any) {
       console.error('Deletion failed:', err);
       alert(err.message || 'Failed to delete product.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1079,7 +1087,7 @@ export default function AdminDashboard() {
                                   <Edit className="h-4 w-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteProduct(product.id)}
+                                  onClick={() => setDeleteTarget({ id: product.id, type: 'product', name: product.name })}
                                   className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50/35 transition-all duration-200 shadow-sm"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -1126,7 +1134,7 @@ export default function AdminDashboard() {
                               <Edit className="h-3.5 w-3.5" />
                             </button>
                             <button
-                              onClick={() => handleDeleteProduct(product.id)}
+                              onClick={() => setDeleteTarget({ id: product.id, type: 'product', name: product.name })}
                               className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 hover:text-red-500 transition-all shadow-sm"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -1413,7 +1421,7 @@ export default function AdminDashboard() {
                                 <Edit className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteUser(u.id)}
+                                onClick={() => setDeleteTarget({ id: u.id, type: 'user', name: u.user_metadata?.name || u.email || 'Admin User' })}
                                 className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 hover:text-red-500 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                                 title="Delete Admin"
                                 disabled={u.email === userEmail} // Cannot delete self
@@ -1532,7 +1540,7 @@ export default function AdminDashboard() {
                                 <Edit className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteBanner(b.id)}
+                                onClick={() => setDeleteTarget({ id: b.id, type: 'banner', name: b.message })}
                                 className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 hover:text-red-500 transition-all shadow-sm cursor-pointer inline-flex items-center"
                                 title="Delete Banner"
                               >
@@ -1932,6 +1940,89 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all duration-300">
+            {/* Close button */}
+            <button
+              onClick={() => setDeleteTarget(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-50"
+              disabled={isDeleting}
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Alert icon */}
+              <div className="h-12 w-12 rounded-full bg-red-50 border border-red-100 text-red-500 flex items-center justify-center">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-slate-900">
+                  {deleteTarget.type === 'product' && 'Delete Store Product?'}
+                  {deleteTarget.type === 'user' && 'Delete Admin Account?'}
+                  {deleteTarget.type === 'banner' && 'Delete Announcement Banner?'}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed px-2">
+                  {deleteTarget.type === 'product' && (
+                    <>
+                      Are you sure you want to permanently delete <strong>{deleteTarget.name}</strong> from the store catalog? This action cannot be undone.
+                    </>
+                  )}
+                  {deleteTarget.type === 'user' && (
+                    <>
+                      Are you sure you want to delete the administrator account for <strong>{deleteTarget.name}</strong>? They will immediately lose dashboard access.
+                    </>
+                  )}
+                  {deleteTarget.type === 'banner' && (
+                    <>
+                      Are you sure you want to delete this announcement banner? It will be permanently removed from the system.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3 w-full pt-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (deleteTarget.type === 'product') {
+                      await handleDeleteProduct(deleteTarget.id);
+                    } else if (deleteTarget.type === 'user') {
+                      await handleDeleteUser(deleteTarget.id);
+                    } else if (deleteTarget.type === 'banner') {
+                      await handleDeleteBanner(deleteTarget.id);
+                    }
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-650 py-2.5 text-xs font-black text-white hover:bg-red-700 transition-colors shadow-md shadow-red-500/10 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Confirm Delete'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

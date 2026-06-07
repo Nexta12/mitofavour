@@ -37,7 +37,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       .map(([key, val]) => `${key}: ${val}`)
       .join(', ');
     const specString = specDetails ? ` (${specDetails})` : '';
-    const message = `Hello Mitofavour, I'm interested in purchasing: *${product.name}*${specString}.\nPrice: ${currencySymbol}${formattedPrice}\nQuantity: ${quantity}\nPlease let me know how to proceed.`;
+    const message = `Hello Favour, I'm interested in purchasing: *${product.name}*${specString}.\nPrice: ${currencySymbol}${formattedPrice}\nQuantity: ${quantity}\nPlease let me know how to proceed.`;
     window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 

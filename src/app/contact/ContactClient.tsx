@@ -18,7 +18,7 @@ export default function ContactClient() {
   const web3FormsKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || '';
 
   const handleWhatsApp = () => {
-    const text = "Hello Mitofavour, I'm interested in making an inquiry or placing an order.";
+    const text = "Hello  Favour, I'm interested in making an inquiry or placing an order.";
     window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
