@@ -94,6 +94,31 @@ export default function ProductsClient() {
     fetchProducts();
   }, [searchQuery, categoryFilter, priceFilter, sortBy, currentPage]);
 
+  // Check for deep-linked product ID in URL search parameters to auto-open modal
+  useEffect(() => {
+    async function checkDeepLink() {
+      if (typeof window === 'undefined') return;
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get('product');
+      if (productId) {
+        try {
+          const { data, error: dbError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', productId)
+            .single();
+
+          if (!dbError && data) {
+            setSelectedProduct(data);
+          }
+        } catch (err) {
+          console.error('Failed to fetch deep-linked product:', err);
+        }
+      }
+    }
+    checkDeepLink();
+  }, []);
+
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     setCurrentPage(1);

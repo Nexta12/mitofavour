@@ -29,7 +29,8 @@ import {
   Users,
   ExternalLink,
   ChevronRight,
-  Megaphone
+  Megaphone,
+  Menu
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -43,6 +44,9 @@ export default function AdminDashboard() {
 
   // Active Tab state (Simulating pages)
   const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'users' | 'settings' | 'banners'>('overview');
+
+  // Mobile sidebar drawer state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Search filter for products table
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,7 +90,6 @@ export default function AdminDashboard() {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
-
   // Dynamic Specs
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
 
@@ -106,7 +109,23 @@ export default function AdminDashboard() {
     checkAuth();
   }, [router]);
 
-  // Fetch products and stats when pagination, search or authentication status changes
+  // Auto-close mobile sidebar when activeTab changes
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [activeTab]);
+
+  // Lock scroll on mobile when sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSidebarOpen]);
+
   useEffect(() => {
     if (!authChecking) {
       fetchProducts();
@@ -683,20 +702,41 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex-grow min-h-screen bg-slate-50 flex flex-col md:flex-row text-slate-800 font-sans">
+    <div className="flex-grow min-h-screen md:h-screen md:overflow-hidden bg-slate-50 flex flex-col md:flex-row text-slate-800 font-sans">
       
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-200 shrink-0 flex flex-col justify-between z-10">
+      <aside
+        className={`fixed md:relative inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 shrink-0 flex flex-col justify-between transform transition-transform duration-300 ease-in-out md:transform-none h-full ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
         <div>
           {/* Logo Brand Header */}
-          <div className="h-16 flex items-center px-6 border-b border-slate-100 gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-100">
-              M
+          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-100">
+                M
+              </div>
+              <div>
+                <span className="font-extrabold text-lg tracking-tight text-slate-900">MITOFAVOUR</span>
+                <span className="text-[10px] block font-bold text-indigo-600 uppercase tracking-widest -mt-1">Admin Portal</span>
+              </div>
             </div>
-            <div>
-              <span className="font-extrabold text-lg tracking-tight text-slate-900">MITO</span>
-              <span className="text-[10px] block font-bold text-indigo-600 uppercase tracking-widest -mt-1">Admin Portal</span>
-            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden focus:outline-none transition-colors duration-200"
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {/* User Profile Card */}
@@ -798,14 +838,23 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-grow flex flex-col min-w-0">
+      <main className="flex-grow flex flex-col min-w-0 md:h-screen md:overflow-hidden">
         
         {/* Sticky Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 shrink-0 z-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-            <span>Admin</span>
-            <span>/</span>
-            <span className="text-slate-800">{activeTab}</span>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 shrink-0 z-10">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden focus:outline-none transition-colors duration-200"
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <span>Admin</span>
+              <span>/</span>
+              <span className="text-slate-800">{activeTab}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -839,36 +888,6 @@ export default function AdminDashboard() {
           {activeTab === 'overview' && (
             <div className="space-y-8">
               
-              {/* Welcome Banner */}
-              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-slate-100">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#334155_1px,transparent_1px),linear-gradient(to_bottom,#334155_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-20 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
-                
-                <div className="relative z-1 max-w-xl">
-                  <h2 className="text-xl md:text-2xl font-extrabold tracking-tight">
-                    Welcome back, {userEmail.split('@')[0]}!
-                  </h2>
-                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                    This is your store's control center. Here you can manage your inventory list, edit product specifications, upload high-definition images, and review currency layouts.
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-2.5">
-                    <button
-                      onClick={handleAddClick}
-                      className="flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 hover:bg-slate-100 transition-all shadow-sm"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Add New Product
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('inventory')}
-                      className="flex items-center gap-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-600/50 transition-all"
-                    >
-                      <Package className="h-3.5 w-3.5" />
-                      Manage Inventory
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Stats Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,7 +1,7 @@
 'use client';
 
 import { Product } from '@/types';
-import { X, Phone, MessageSquare, Truck, CheckCircle2, Loader2, Info } from 'lucide-react';
+import { X, Phone, MessageSquare, Truck, CheckCircle2, Loader2, Info, Link2, Check } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProductModalProps {
@@ -21,6 +21,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [address, setAddress] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedSpecs, setSelectedSpecs] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState(false);
 
   // Configurations
   const contactPhone = process.env.NEXT_PUBLIC_CONTACT_PHONE || '+234 810 680 0185';
@@ -39,6 +40,32 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     const specString = specDetails ? ` (${specDetails})` : '';
     const message = `Hello Favour, I'm interested in purchasing: *${product.name}*${specString}.\nPrice: ${currencySymbol}${formattedPrice}\nQuantity: ${quantity}\nPlease let me know how to proceed.`;
     window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return 'https://mitofavour.com/products';
+    return `${window.location.origin}/products?product=${product.id}`;
+  };
+
+  const shareToFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`;
+    window.open(url, '_blank', 'width=600,height=400,noopener,noreferrer');
+  };
+
+  const shareToWhatsApp = () => {
+    const text = `Check out this premium equipment: *${product.name}* at Mitofavour! ${getShareUrl()}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const copyLinkToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(getShareUrl());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link: ', err);
+    }
   };
 
   const handleSpecChange = (key: string, value: string) => {
@@ -211,6 +238,54 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         <Phone className="h-4.5 w-4.5 text-slate-400" />
                         Call Support: {contactPhone}
                       </a>
+
+                      {/* Social Media Sharing */}
+                      <div className="mt-4 border-t border-slate-100 pt-4">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block mb-2.5">
+                          Share this product
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={shareToFacebook}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all duration-300 cursor-pointer shadow-xs"
+                          >
+                            <svg className="h-4 w-4 fill-[#1877F2]" viewBox="0 0 24 24">
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <span>Facebook</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={shareToWhatsApp}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-slate-250 bg-white py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-350 transition-all duration-300 cursor-pointer shadow-xs"
+                          >
+                            <svg className="h-4 w-4 fill-[#25D366]" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.022-.015-.022-.015-.022-.015a9.7 9.7 0 0 0-.486-.24c-.265-.125-.433-.193-.6-.02-.167.172-.65.818-.797.986-.147.168-.293.187-.558.062a7.0 7.0 0 0 1-2.073-1.28 7.37 7.37 0 0 1-1.436-1.787c-.157-.27-.017-.417.118-.552l.46-.532c.114-.148.167-.24.24-.393a.5.5 0 0 0-.02-.486c-.074-.15-.658-1.583-.902-2.17-.23-.556-.475-.48-.65-.488-.168-.008-.363-.01-.559-.01a1.08 1.08 0 0 0-.78.365c-.27.293-1.03 1.01-1.03 2.46s1.055 2.85 1.2 3.05c.147.2 2.08 3.176 5.04 4.46.703.305 1.25.487 1.68.624a4.13 4.13 0 0 0 1.888.118c.579-.086 1.794-.732 2.05-1.44a2.53 2.53 0 0 0 .178-1.44c-.074-.132-.27-.21-.558-.352zM12 2C6.48 2 2 6.48 2 12a9.9 9.9 0 0 0 1.34 4.96L2 22l5.14-1.34A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.63 0-3.14-.5-4.41-1.35l-.32-.22-3.26.85.87-3.18-.24-.38A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/>
+                            </svg>
+                            <span>WhatsApp</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={copyLinkToClipboard}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-350 transition-all duration-300 cursor-pointer shadow-xs"
+                          >
+                            {copied ? (
+                              <>
+                                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                                <span className="text-emerald-600">Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Link2 className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span>Copy Link</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     </>
                   ) : (
                     /* Order Form */

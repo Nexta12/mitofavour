@@ -1,9 +1,16 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
+
 export default function WhatsAppButton() {
+  const pathname = usePathname();
   const whatsappPhone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '2348106800185';
   const defaultMessage = "Hello Favour, I'm visiting your website and would like to make an inquiry.";
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(defaultMessage)}`;
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <a
