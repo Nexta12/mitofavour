@@ -72,6 +72,44 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     setSelectedSpecs((prev) => ({ ...prev, [key]: value }));
   };
 
+  const renderDescription = (text: string) => {
+    if (!text) return <p className="text-xs text-slate-400 italic">No description available for this product.</p>;
+    
+    return text.split('\n').map((line, index) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        return <div key={index} className="h-2" />;
+      }
+      
+      const isHeader = /^\d+[\.\)]\s*/.test(trimmed);
+      const isBullet = /^[▪️•\*\-]\s*/.test(trimmed);
+      
+      if (isHeader) {
+        return (
+          <h4 key={index} className="font-extrabold text-slate-900 mt-4.5 mb-1.5 text-[11px] uppercase tracking-wider">
+            {line}
+          </h4>
+        );
+      }
+      
+      if (isBullet) {
+        // Render bullet with indent
+        return (
+          <div key={index} className="pl-4 flex items-start gap-1.5 text-xs leading-relaxed text-slate-655 my-0.5">
+            <span className="select-none text-slate-400 mt-0.5">{trimmed.charAt(0)}</span>
+            <span>{trimmed.substring(1).trim()}</span>
+          </div>
+        );
+      }
+      
+      return (
+        <p key={index} className="text-xs leading-relaxed text-slate-500 my-1">
+          {line}
+        </p>
+      );
+    });
+  };
+
   // Submit order to Web3Forms
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,9 +209,9 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
 
                 <div className="mt-4 border-t border-slate-100 pt-4">
-                  <p className="text-xs leading-relaxed text-slate-500">
-                    {product.description || 'No description available for this product.'}
-                  </p>
+                  <div className="space-y-1">
+                    {renderDescription(product.description || '')}
+                  </div>
                 </div>
 
                 {/* Custom Metadata Specs */}
