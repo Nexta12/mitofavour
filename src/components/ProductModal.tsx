@@ -199,12 +199,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   {product.name}
                 </h2>
                 
-                <div className="mt-2.5 flex items-baseline gap-2">
+                <div className="mt-2.5 flex items-baseline gap-2 flex-wrap">
                   <span className="text-2xl font-black text-slate-900">
                     {currencySymbol}{formattedPrice}
                   </span>
                   <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                     Pay on Delivery
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Free Delivery
                   </span>
                 </div>
 

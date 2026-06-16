@@ -67,7 +67,12 @@ export default function ProductCard({ product, onOpenDetails }: ProductCardProps
         {/* Bottom Section */}
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
           <div className="flex flex-col">
-            <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Price</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Price</span>
+              <span className="inline-flex rounded bg-emerald-50 px-1.5 py-0.5 text-[8px] font-bold text-emerald-700 uppercase tracking-wide border border-emerald-100 leading-none">
+                Free Delivery
+              </span>
+            </div>
             <span className="font-sans text-base font-black text-slate-900">
               {currencySymbol}{formattedPrice}
             </span>

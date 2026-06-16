@@ -211,6 +211,7 @@ export default function AdminDashboard() {
   const [userDisplayName, setUserDisplayName] = useState('');
   const [userEmailField, setUserEmailField] = useState('');
   const [userPasswordField, setUserPasswordField] = useState('');
+  const [userCurrentPasswordField, setUserCurrentPasswordField] = useState('');
 
   // Fetch users from API route
   async function fetchUsers() {
@@ -402,6 +403,7 @@ export default function AdminDashboard() {
     setUserDisplayName('');
     setUserEmailField('');
     setUserPasswordField('');
+    setUserCurrentPasswordField('');
     setIsUserFormOpen(true);
   };
 
@@ -411,6 +413,7 @@ export default function AdminDashboard() {
     setUserDisplayName(userObj.user_metadata?.name || '');
     setUserEmailField(userObj.email || '');
     setUserPasswordField('');
+    setUserCurrentPasswordField('');
     setIsUserFormOpen(true);
   };
 
@@ -474,6 +477,14 @@ export default function AdminDashboard() {
 
       if (userPasswordField) {
         payload.password = userPasswordField;
+        if (editingUser && editingUser.email === userEmail) {
+          if (!userCurrentPasswordField) {
+            setUserError('Current password is required to change your password.');
+            setUsersLoading(false);
+            return;
+          }
+          payload.currentPassword = userCurrentPasswordField;
+        }
       }
 
       const url = editingUser ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
@@ -1852,6 +1863,23 @@ export default function AdminDashboard() {
                   className="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
                 />
               </div>
+
+              {/* Current Password - only shown if editing own account and new password has been input */}
+              {editingUser && editingUser.email === userEmail && userPasswordField && (
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Current Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter your current password"
+                    value={userCurrentPasswordField}
+                    onChange={(e) => setUserCurrentPasswordField(e.target.value)}
+                    className="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
+                  />
+                </div>
+              )}
 
               {/* Modal Footer / Actions */}
               <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-6">

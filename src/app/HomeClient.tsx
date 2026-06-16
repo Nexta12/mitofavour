@@ -7,7 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductModal from '@/components/ProductModal';
 import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
-import { Sparkles, AlertCircle, ShoppingBag, ShieldCheck, Flame, Zap, Award, ArrowRight } from 'lucide-react';
+import { Sparkles, AlertCircle, ShoppingBag, ShieldCheck, Flame, Zap, Award, ArrowRight, Truck } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomeClient() {
@@ -247,14 +247,24 @@ export default function HomeClient() {
             <h2 className="text-xl font-black mt-1">Why Buy From Mitofavour?</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
             <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 flex flex-col gap-3">
               <div className="h-10 w-10 rounded-xl bg-yellow-500 text-slate-950 flex items-center justify-center shrink-0">
                 <ShieldCheck className="h-5.5 w-5.5 font-bold" />
               </div>
               <h3 className="text-base font-bold">100% Cash on Delivery</h3>
-              <p className="text-xs text-slate-455 leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Pay only when the package reaches your doorstep. Inspect your machine or tools before you pay, ensuring complete safety and satisfaction.
+              </p>
+            </div>
+
+            <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 flex flex-col gap-3">
+              <div className="h-10 w-10 rounded-xl bg-yellow-500 text-slate-950 flex items-center justify-center shrink-0">
+                <Truck className="h-5.5 w-5.5" />
+              </div>
+              <h3 className="text-base font-bold">Free Delivery Nationwide</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                We deliver all products completely free of charge to your location. No hidden shipping fees or extra delivery costs.
               </p>
             </div>
 

@@ -85,7 +85,29 @@ export async function PUT(request: Request, context: any) {
     }
 
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, name, currentPassword } = body;
+
+    // Check current password if user is changing their own password
+    if (user.id === id && password) {
+      if (!currentPassword) {
+        return NextResponse.json({ error: 'Current password is required to change your password.' }, { status: 400 });
+      }
+
+      const userClient = createClient(supabaseUrl, anonKey, {
+        auth: {
+          persistSession: false,
+        },
+      });
+
+      const { error: verifyError } = await userClient.auth.signInWithPassword({
+        email: user.email || '',
+        password: currentPassword,
+      });
+
+      if (verifyError) {
+        return NextResponse.json({ error: 'Incorrect current password.' }, { status: 400 });
+      }
+    }
 
     const updatePayload: any = {
       user_metadata: {

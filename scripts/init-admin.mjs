@@ -69,6 +69,10 @@ async function initializeAdmin() {
     
     if (listError) {
       console.error('❌ Failed to list users:', listError.message);
+      if (listError.message?.includes('fetch failed') || listError.message?.includes('getaddrinfo')) {
+        console.log('⚠️ Network or DNS resolution error encountered. Skipping admin user initialization (offline mode).');
+        return;
+      }
       process.exit(1);
     }
 
