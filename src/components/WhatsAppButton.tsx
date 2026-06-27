@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import * as fpixel from '@/lib/fpixel';
 
 export default function WhatsAppButton() {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export default function WhatsAppButton() {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => fpixel.event('Contact')}
       className="fixed bottom-6 right-6 z-50 flex items-center gap-2 group"
       aria-label="Chat on WhatsApp"
     >

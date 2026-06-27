@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Phone, MessageSquare, Truck, Loader2, Info, CheckCircle2 } from 'lucide-react';
+import * as fpixel from '@/lib/fpixel';
 import Footer from '@/components/Footer';
 
 export default function ContactClient() {
@@ -19,6 +20,7 @@ export default function ContactClient() {
 
   const handleWhatsApp = () => {
     const text = "Hello  Favour, I'm interested in making an inquiry or placing an order.";
+    fpixel.event('Contact');
     window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -53,6 +55,7 @@ export default function ContactClient() {
       const result = await response.json();
       if (result.success) {
         setSubmitSuccess(true);
+        fpixel.event('Contact');
         setName('');
         setEmail('');
         setPhone('');

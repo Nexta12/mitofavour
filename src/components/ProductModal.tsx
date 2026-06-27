@@ -3,6 +3,7 @@
 import { Product } from '@/types';
 import { X, Phone, MessageSquare, Truck, CheckCircle2, Loader2, Info, Link2, Check } from 'lucide-react';
 import { useState } from 'react';
+import * as fpixel from '@/lib/fpixel';
 
 interface ProductModalProps {
   product: Product;
@@ -39,6 +40,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       .join(', ');
     const specString = specDetails ? ` (${specDetails})` : '';
     const message = `Hello Favour, I'm interested in purchasing: *${product.name}*${specString}.\nPrice: ${currencySymbol}${formattedPrice}\nQuantity: ${quantity}\nPlease let me know how to proceed.`;
+    
+    // Facebook Pixel Contact tracking
+    fpixel.event('Contact', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price * quantity,
+      currency: 'NGN',
+    });
+
     window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -151,6 +162,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       const result = await response.json();
       if (result.success) {
         setSubmitSuccess(true);
+        // Facebook Pixel Purchase tracking
+        fpixel.event('Purchase', {
+          value: product.price * quantity,
+          currency: 'NGN',
+          content_name: product.name,
+          content_ids: [product.id],
+          content_type: 'product',
+          num_items: quantity,
+        });
       } else {
         setSubmitError(result.message || 'Something went wrong. Please try again.');
       }

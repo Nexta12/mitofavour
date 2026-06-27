@@ -3,6 +3,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import Banner from '@/components/Banner';
+import FacebookPixel from '@/components/FacebookPixel';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mitofavour.com'),
@@ -118,6 +119,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-800 font-sans antialiased">
+        <FacebookPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
