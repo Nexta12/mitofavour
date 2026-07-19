@@ -35,10 +35,7 @@ export default function Header() {
   };
 
   const navLinks = [
-    { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
-    { name: 'About Us', href: '/about' },
-    { name: 'Contact Us', href: '/contact' },
   ];
 
   // Helper to determine if link is active
@@ -73,8 +70,10 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8">
+        {/* Right Side Items */}
+        <div className="flex items-center gap-6 md:gap-8">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -134,6 +133,7 @@ export default function Header() {
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
+        </div>
         </div>
       </div>
 

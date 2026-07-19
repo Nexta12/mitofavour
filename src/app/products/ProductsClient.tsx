@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
-import ProductModal from '@/components/ProductModal';
 import Footer from '@/components/Footer';
 import { Search, Loader2, AlertCircle, ShoppingBag, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 
@@ -14,7 +13,6 @@ export default function ProductsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Filter and Sorting States
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -94,30 +92,7 @@ export default function ProductsClient() {
     fetchProducts();
   }, [searchQuery, categoryFilter, priceFilter, sortBy, currentPage]);
 
-  // Check for deep-linked product ID in URL search parameters to auto-open modal
-  useEffect(() => {
-    async function checkDeepLink() {
-      if (typeof window === 'undefined') return;
-      const params = new URLSearchParams(window.location.search);
-      const productId = params.get('product');
-      if (productId) {
-        try {
-          const { data, error: dbError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', productId)
-            .single();
-
-          if (!dbError && data) {
-            setSelectedProduct(data);
-          }
-        } catch (err) {
-          console.error('Failed to fetch deep-linked product:', err);
-        }
-      }
-    }
-    checkDeepLink();
-  }, []);
+  // Check for deep-linked product ID in URL search parameters to auto-open modal (Removed)
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
@@ -146,31 +121,35 @@ export default function ProductsClient() {
     <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
       
       {/* Page Header banner */}
-      <section className="bg-slate-900 border-b border-slate-950 py-12 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#334155_1px,transparent_1px),linear-gradient(to_bottom,#334155_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-10 pointer-events-none" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <section className="bg-white border-b border-slate-200 py-12 md:py-16 text-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-30 pointer-events-none" />
+        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center gap-6">
+          
+          <div className="inline-flex items-center justify-center bg-amber-50 border border-amber-200 text-amber-700 px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
+            MITOFAVOUR CO.
+          </div>
+          
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-500">MITOFAVOUR CO.</span>
-            <h1 className="text-2xl sm:text-4xl font-black mt-1 tracking-tight">Our Equipment Catalog</h1>
-            <p className="text-xs text-slate-355 mt-1 max-w-md">Search and order specialized tools and disinfection fogging sprayers with cash on delivery shipping.</p>
+            <h1 className="text-3xl sm:text-5xl font-black mt-1 tracking-tight">Premium Equipment Catalog</h1>
+            <p className="text-[15px] sm:text-base text-slate-600 mt-4 max-w-2xl mx-auto">Discover our collection of specialized tools and high-power disinfection fogging sprayers. Nationwide cash on delivery available.</p>
           </div>
 
           {/* Search bar */}
-          <div className="w-full max-w-md relative group shrink-0">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-slate-400 group-focus-within:text-yellow-500 transition-colors" />
+          <div className="w-full max-w-xl relative group mt-4">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-400 group-focus-within:text-amber-500 transition-colors" />
             </div>
             <input
               type="text"
               placeholder="Search products by title or specification..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="block w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs text-white placeholder-slate-400 focus:border-yellow-500 focus:outline-none transition-all shadow-md"
+              className="block w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 focus:outline-none transition-all shadow-sm"
             />
             {searchQuery && (
               <button
                 onClick={() => handleSearchChange('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white text-xs"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 text-sm"
               >
                 ✕
               </button>
@@ -183,7 +162,7 @@ export default function ProductsClient() {
       <section className="bg-white border-b border-slate-200 py-3.5 shadow-sm relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
-            <SlidersHorizontal className="h-4 w-4 text-yellow-600" />
+            <SlidersHorizontal className="h-4 w-4 text-amber-600" />
             <span>Filter Catalog</span>
           </div>
 
@@ -194,7 +173,7 @@ export default function ProductsClient() {
               <select
                 value={categoryFilter}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-yellow-500 focus:outline-none transition-all cursor-pointer hover:border-slate-350"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all cursor-pointer hover:border-slate-300"
               >
                 <option value="all">All Equipment</option>
                 <option value="foggers">Thermal Foggers</option>
@@ -209,7 +188,7 @@ export default function ProductsClient() {
               <select
                 value={priceFilter}
                 onChange={(e) => handlePriceChange(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-yellow-500 focus:outline-none transition-all cursor-pointer hover:border-slate-350"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all cursor-pointer hover:border-slate-300"
               >
                 <option value="all">All Prices</option>
                 <option value="under70">Under ₦70,000</option>
@@ -224,7 +203,7 @@ export default function ProductsClient() {
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-yellow-500 focus:outline-none transition-all cursor-pointer hover:border-slate-350"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all cursor-pointer hover:border-slate-300"
               >
                 <option value="newest">Newest First</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -264,11 +243,10 @@ export default function ProductsClient() {
             {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onOpenDetails={setSelectedProduct}
-                />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                  />
               ))}
             </div>
 
@@ -338,16 +316,7 @@ export default function ProductsClient() {
         )}
       </section>
 
-      {/* Footer */}
       <Footer />
-
-      {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
     </div>
   );
 }

@@ -89,7 +89,13 @@ export default function AdminDashboard() {
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUrl2, setImageUrl2] = useState('');
+  const [imageUrl3, setImageUrl3] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [catchphrase, setCatchphrase] = useState('');
+  const [isHomepage, setIsHomepage] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState<number | null>(null);
   // Dynamic Specs
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
 
@@ -521,6 +527,12 @@ export default function AdminDashboard() {
     setPrice('');
     setDescription('');
     setImageUrl('');
+    setImageUrl2('');
+    setImageUrl3('');
+    setOriginalPrice('');
+    setTagline('');
+    setCatchphrase('');
+    setIsHomepage(false);
     setSpecs([{ key: '', value: '' }]);
     setIsFormOpen(true);
   };
@@ -532,14 +544,22 @@ export default function AdminDashboard() {
     setPrice(product.price.toString());
     setDescription(product.description || '');
     setImageUrl(product.image_url || '');
+    setImageUrl2(product.details?._image2 || '');
+    setImageUrl3(product.details?._image3 || '');
+    setOriginalPrice(product.details?._original_price || '');
+    setTagline(product.details?._tagline || '');
+    setCatchphrase(product.details?._catchphrase || '');
+    setIsHomepage(product.details?._is_homepage === 'true');
 
-    // Load specs from details JSONB
+    // Load specs from details JSONB, ignoring internal keys starting with _
     if (product.details && Object.keys(product.details).length > 0) {
-      const loadedSpecs = Object.entries(product.details).map(([k, v]) => ({
-        key: k,
-        value: v as string,
-      }));
-      setSpecs(loadedSpecs);
+      const loadedSpecs = Object.entries(product.details)
+        .filter(([k]) => !k.startsWith('_'))
+        .map(([k, v]) => ({
+          key: k,
+          value: v as string,
+        }));
+      setSpecs(loadedSpecs.length > 0 ? loadedSpecs : [{ key: '', value: '' }]);
     } else {
       setSpecs([{ key: '', value: '' }]);
     }
@@ -548,11 +568,11 @@ export default function AdminDashboard() {
   };
 
   // Handle image upload to Supabase Storage
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, imageIndex: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingImage(true);
+    setUploadingImage(imageIndex);
     setError('');
 
     try {
@@ -575,12 +595,14 @@ export default function AdminDashboard() {
         data: { publicUrl },
       } = supabase.storage.from('product-images').getPublicUrl(fileName);
 
-      setImageUrl(publicUrl);
+      if (imageIndex === 1) setImageUrl(publicUrl);
+      else if (imageIndex === 2) setImageUrl2(publicUrl);
+      else if (imageIndex === 3) setImageUrl3(publicUrl);
     } catch (err: any) {
       console.error('Image upload failed:', err);
       setError(err.message || 'Image upload failed. Make sure a public bucket named "product-images" is created in Supabase.');
     } finally {
-      setUploadingImage(false);
+      setUploadingImage(null);
     }
   };
 
@@ -630,10 +652,17 @@ export default function AdminDashboard() {
     specs.forEach((s) => {
       const trimmedKey = s.key.trim();
       const trimmedVal = s.value.trim();
-      if (trimmedKey && trimmedVal) {
+      if (trimmedKey && !trimmedKey.startsWith('_') && trimmedVal) {
         detailsJson[trimmedKey] = trimmedVal;
       }
     });
+    
+    if (imageUrl2) detailsJson['_image2'] = imageUrl2;
+    if (imageUrl3) detailsJson['_image3'] = imageUrl3;
+    if (originalPrice) detailsJson['_original_price'] = originalPrice;
+    if (tagline) detailsJson['_tagline'] = tagline;
+    if (catchphrase) detailsJson['_catchphrase'] = catchphrase;
+    if (isHomepage) detailsJson['_is_homepage'] = 'true';
 
     const parsedPrice = parseFloat(price);
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
@@ -652,6 +681,16 @@ export default function AdminDashboard() {
     setLoading(true);
 
     try {
+      if (isHomepage) {
+        // Remove homepage flag from other products
+        const existingHomepageProducts = products.filter(p => p.details?._is_homepage === 'true' && p.id !== editingProduct?.id);
+        for (const p of existingHomepageProducts) {
+          const newDetails = { ...p.details };
+          delete newDetails['_is_homepage'];
+          await supabase.from('products').update({ details: newDetails }).eq('id', p.id);
+        }
+      }
+
       if (editingProduct) {
         // Update product
         const { error: updateError } = await supabase
@@ -732,7 +771,7 @@ export default function AdminDashboard() {
         <div>
           {/* Logo Brand Header */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
-            <div className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-100">
                 M
               </div>
@@ -740,7 +779,7 @@ export default function AdminDashboard() {
                 <span className="font-extrabold text-lg tracking-tight text-slate-900">MITOFAVOUR</span>
                 <span className="text-[10px] block font-bold text-indigo-600 uppercase tracking-widest -mt-1">Admin Portal</span>
               </div>
-            </div>
+            </Link>
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden focus:outline-none transition-colors duration-200"
@@ -765,7 +804,7 @@ export default function AdminDashboard() {
           <nav className="px-3 space-y-1">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'overview'
                   ? 'bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-50'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -777,19 +816,19 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('inventory')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'inventory'
                   ? 'bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-50'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               <Package className="h-4.5 w-4.5" />
-              <span>Inventory & Products</span>
+              <span>Products</span>
             </button>
 
             <button
               onClick={() => setActiveTab('users')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'users'
                   ? 'bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-50'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -801,7 +840,7 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('banners')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'banners'
                   ? 'bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-50'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -813,7 +852,7 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'settings'
                   ? 'bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-50'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -1094,15 +1133,17 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-wrap gap-1 max-w-[280px]">
-                                {product.details && Object.keys(product.details).length > 0 ? (
-                                  Object.entries(product.details).map(([k, v]) => (
-                                    <span
-                                      key={k}
-                                      className="inline-flex items-center gap-1 rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-slate-600 font-semibold"
-                                    >
-                                      <strong>{k}:</strong> {v}
-                                    </span>
-                                  ))
+                                {product.details && Object.keys(product.details).filter(k => !k.startsWith('_')).length > 0 ? (
+                                  Object.entries(product.details)
+                                    .filter(([k]) => !k.startsWith('_'))
+                                    .map(([k, v]) => (
+                                      <span
+                                        key={k}
+                                        className="inline-flex items-center gap-1 rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-slate-600 font-semibold"
+                                      >
+                                        <strong>{k}:</strong> {v}
+                                      </span>
+                                    ))
                                 ) : (
                                   <span className="text-xs text-slate-400 italic">None</span>
                                 )}
@@ -1174,16 +1215,18 @@ export default function AdminDashboard() {
                         {product.description && (
                           <p className="text-xs text-slate-500 line-clamp-2">{product.description}</p>
                         )}
-                        {product.details && Object.keys(product.details).length > 0 && (
+                        {product.details && Object.keys(product.details).filter(k => !k.startsWith('_')).length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {Object.entries(product.details).map(([k, v]) => (
-                              <span
-                                key={k}
-                                className="rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] text-slate-600 font-semibold"
-                              >
-                                <strong>{k}:</strong> {v}
-                              </span>
-                            ))}
+                            {Object.entries(product.details)
+                              .filter(([k]) => !k.startsWith('_'))
+                              .map(([k, v]) => (
+                                <span
+                                  key={k}
+                                  className="rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] text-slate-600 font-semibold"
+                                >
+                                  <strong>{k}:</strong> {v}
+                                </span>
+                              ))}
                           </div>
                         )}
                       </div>
@@ -1652,6 +1695,66 @@ export default function AdminDashboard() {
                 />
               </div>
 
+              {/* Product Original Price */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Original Price / Compare At ({process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₦'})
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 250.00"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  className="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
+                />
+              </div>
+
+              {/* Tagline */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Tagline (Small Bubble Text)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 🦠 For Pest Control Professionals"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  className="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
+                />
+              </div>
+
+              {/* Catchphrase */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Catchphrase / Main Headline
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Eradicate Pests and Pathogens Fast."
+                  value={catchphrase}
+                  onChange={(e) => setCatchphrase(e.target.value)}
+                  className="block w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
+                />
+              </div>
+
+              {/* Set as Homepage */}
+              <div className="flex items-center gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200 mt-4">
+                <input
+                  type="checkbox"
+                  id="isHomepage"
+                  checked={isHomepage}
+                  onChange={(e) => setIsHomepage(e.target.checked)}
+                  className="w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-500"
+                />
+                <label htmlFor="isHomepage" className="text-sm font-bold text-amber-900 cursor-pointer">
+                  Set as Featured Homepage Product
+                  <span className="block text-xs font-normal text-amber-700 mt-0.5">
+                    This will replace the current product displayed on the main landing page.
+                  </span>
+                </label>
+              </div>
+
               {/* Product Description */}
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
@@ -1666,49 +1769,58 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              {/* Product Image */}
+              {/* Product Images */}
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                  Product Image
+                  Product Images (Up to 3)
                 </label>
-                <div className="flex flex-col gap-3">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Paste Image URL or upload one"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      className="flex-grow px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
-                    />
-                    <label className="cursor-pointer flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/20 transition-all shrink-0">
-                      {uploadingImage ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4" />
+                <div className="flex flex-col gap-4">
+                  {[
+                    { val: imageUrl, set: setImageUrl, num: 1 },
+                    { val: imageUrl2, set: setImageUrl2, num: 2 },
+                    { val: imageUrl3, set: setImageUrl3, num: 3 }
+                  ].map((imgData) => (
+                    <div key={imgData.num} className="flex flex-col gap-3">
+                      <span className="text-[10px] font-semibold text-slate-400">Image {imgData.num} {imgData.num === 1 ? '(Main)' : ''}</span>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Paste Image URL or upload one"
+                          value={imgData.val}
+                          onChange={(e) => imgData.set(e.target.value)}
+                          className="flex-grow px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors duration-300"
+                        />
+                        <label className="cursor-pointer flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/20 transition-all shrink-0">
+                          {uploadingImage === imgData.num ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, imgData.num)}
+                            disabled={uploadingImage !== null}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      {imgData.val && (
+                        <div className="relative h-24 w-24 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={imgData.val} alt={`Preview ${imgData.num}`} className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => imgData.set('')}
+                            className="absolute top-1 right-1 h-5 w-5 bg-slate-900/80 hover:bg-slate-900 border border-slate-900 text-white flex items-center justify-center rounded-full text-[10px] shadow"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       )}
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={uploadingImage}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  {imageUrl && (
-                    <div className="relative h-24 w-24 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imageUrl} alt="Upload preview" className="h-full w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setImageUrl('')}
-                        className="absolute top-1 right-1 h-5 w-5 bg-slate-900/80 hover:bg-slate-900 border border-slate-900 text-white flex items-center justify-center rounded-full text-[10px] shadow"
-                      >
-                        ✕
-                      </button>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -1772,7 +1884,7 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || uploadingImage}
+                  disabled={loading || uploadingImage !== null}
                   className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 transition-all shadow-md shadow-indigo-100"
                 >
                   {loading ? (

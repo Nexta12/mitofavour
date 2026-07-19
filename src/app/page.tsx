@@ -1,31 +1,58 @@
-import HomeClient from './HomeClient';
-import type { Metadata } from 'next';
+import { supabase } from '@/lib/supabase';
+import ProductClient from './product/[id]/ProductClient';
+import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Mitofavour | Premium Power Tools & Disinfection Sprayers',
-  description: 'Shop premium industrial Pulsed Power Thermal Fogging Machines, high-torque cordless drills, impact driver kits, and demolition jack hammers. Pay strictly on delivery.',
-  keywords: 'thermal fogger, thermal fogging machine, cordless drill driver, tools box, demolition jack hammer, circular saw, green laser level, angle grinder, Nigeria tool store, cash on delivery tools',
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: 'Mitofavour | Premium Power Tools & Disinfection Sprayers',
-    description: 'Shop premium industrial Pulsed Power Thermal Fogging Machines, high-torque cordless drills, impact driver kits, and demolition jack hammers. Pay strictly on delivery.',
-    url: 'https://mitofavour.com',
-    siteName: 'Mitofavour',
-    images: [
-      {
-        url: '/thermal_fogging_machine.jpg',
-        width: 800,
-        height: 600,
-        alt: 'Mitofavour Thermal Fogging Machine',
-      },
-    ],
-    locale: 'en_NG',
-    type: 'website',
-  },
-};
+export const revalidate = 60; // Revalidate cache every 60 seconds
 
-export default function HomePage() {
-  return <HomeClient />;
+export async function generateMetadata(): Promise<Metadata> {
+  const { data: products } = await supabase.from('products').select('*');
+  let product = null;
+  
+  if (products && products.length > 0) {
+    product = products.find(p => p.details?._is_homepage === 'true') || products[0];
+  }
+
+  if (!product) {
+    return {
+      title: 'Mitofavour | Premium Power Tools & Disinfection Sprayers',
+    };
+  }
+
+  return {
+    title: `${product.details?._catchphrase || product.name} | Mitofavour`,
+    description: product.description || `Buy the high-quality ${product.name}. Pay strictly on delivery. Fast shipping nationwide.`,
+    openGraph: {
+      title: `${product.details?._catchphrase || product.name} | Mitofavour`,
+      description: product.description || `Buy the high-quality ${product.name}. Pay strictly on delivery.`,
+      images: product.image_url ? [{ url: product.image_url }] : [],
+    },
+  };
+}
+
+export default async function HomePage() {
+  const { data: products, error } = await supabase.from('products').select('*');
+
+  if (error || !products || products.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <div className="text-center max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+          <h1 className="text-2xl font-black text-slate-900 mb-2">No Products Found</h1>
+          <p className="text-slate-600 mb-6">Your store is currently empty. Please add a product from the admin dashboard.</p>
+          <a href="/admin/dashboard" className="bg-amber-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-amber-700 transition-colors inline-block">
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Find the product marked as homepage
+  let product = products.find(p => p.details?._is_homepage === 'true');
+  
+  // Fallback to the first product if none is selected
+  if (!product) {
+    product = products[0];
+  }
+
+  return <ProductClient product={product} />;
 }
