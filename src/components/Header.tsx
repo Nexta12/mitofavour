@@ -71,9 +71,9 @@ export default function Header() {
         </Link>
 
         {/* Right Side Items */}
-        <div className="flex items-center gap-6 md:gap-8">
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-4 md:gap-8">
+          {/* Navigation Links */}
+          <nav className="flex items-center gap-4 md:gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -92,16 +92,16 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Action Button & Mobile Menu Toggle */}
-        <div className="flex items-center gap-3">
+        {/* Action Button */}
+        <div className="flex items-center gap-2">
           
           {/* Admin panel navigation / Log out */}
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {isAdmin ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/admin/dashboard"
-                  className={`text-xs font-extrabold uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-colors duration-200 ${
+                  className={`hidden sm:block text-xs font-extrabold uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-colors duration-200 ${
                     pathname.startsWith('/admin') ? 'text-yellow-600' : ''
                   }`}
                 >
@@ -109,92 +109,28 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-all duration-300"
+                  className="flex items-center justify-center gap-1 sm:gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:px-4 sm:py-2 text-xs font-bold text-slate-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-all duration-300"
+                  title="Logout"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (
               <Link
                 href="/admin/dashboard"
-                className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:border-yellow-300 hover:bg-yellow-500 hover:text-slate-950 transition-all duration-300"
+                className="flex items-center justify-center p-2 sm:px-4 sm:py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:border-yellow-300 hover:bg-yellow-50 hover:text-slate-950 transition-all duration-300"
+                title="Admin Login"
               >
-                <span>Login</span>
+                <ShieldAlert className="h-4 w-4 sm:hidden" />
+                <span className="hidden sm:inline text-xs font-bold">Login</span>
               </Link>
             )}
           </div>
-
-          {/* Mobile menu open/close toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-950 transition-all"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
 
         </div>
         </div>
       </div>
-
-      {/* Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white py-4 px-6 space-y-3 animate-fade-in shadow-inner">
-          <nav className="flex flex-col gap-2.5">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`py-2 text-sm font-bold rounded-lg px-3 transition-colors ${
-                  isActive(link.href)
-                    ? 'bg-yellow-500 text-slate-950 font-black'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
-
-          <hr className="border-slate-100 my-2" />
-
-          {/* Mobile Admin Actions */}
-          <div className="pt-2">
-            {isAdmin ? (
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/admin/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex justify-center items-center py-2.5 text-xs font-bold uppercase text-slate-700 bg-slate-50 rounded-xl border border-slate-200"
-                >
-                  Go to Admin Dashboard
-                </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-red-50 text-red-600 py-2.5 text-xs font-bold border border-red-100"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/admin/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-xs font-bold text-slate-700"
-              >
-                <ShieldAlert className="h-4 w-4" />
-                <span>Admin Login Portal</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-
     </header>
   );
 }

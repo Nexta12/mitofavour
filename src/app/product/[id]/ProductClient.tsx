@@ -56,7 +56,7 @@ export default function ProductClient({ product }: { product: Product }) {
           {/* Product Images Gallery (No Slider) */}
           <div className="max-w-2xl mx-auto mb-8 space-y-3 sm:space-y-4">
             {/* Main Image */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-video flex items-center justify-center">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-square sm:aspect-video flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-slate-200 to-slate-100 animate-pulse -z-10"></div>
               <img 
                 src={mainImage} 
@@ -72,7 +72,7 @@ export default function ProductClient({ product }: { product: Product }) {
             {(product.details?._image2 || product.details?._image3) && (
               <div className="flex flex-col gap-3 sm:gap-4">
                 {product.details?._image2 && (
-                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-video flex items-center justify-center">
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-square sm:aspect-video flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-slate-200 to-slate-100 animate-pulse -z-10"></div>
                     <img 
                       src={product.details._image2 as string} 
@@ -82,7 +82,7 @@ export default function ProductClient({ product }: { product: Product }) {
                   </div>
                 )}
                 {product.details?._image3 && (
-                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-video flex items-center justify-center">
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100 aspect-square sm:aspect-video flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-slate-200 to-slate-100 animate-pulse -z-10"></div>
                     <img 
                       src={product.details._image3 as string} 

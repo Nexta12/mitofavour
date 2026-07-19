@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
-import WhatsAppButton from '@/components/WhatsAppButton';
 import Banner from '@/components/Banner';
 import FacebookPixel from '@/components/FacebookPixel';
 import NextTopLoader from 'nextjs-toploader';
@@ -131,7 +130,6 @@ export default function RootLayout({
         <main className="flex-grow flex flex-col">
           {children}
         </main>
-        <WhatsAppButton />
       </body>
     </html>
   );

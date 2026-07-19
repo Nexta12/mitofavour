@@ -82,8 +82,13 @@ export default function OrderForm({ price }: { price?: number }) {
     );
   }
 
+  // Format the phone for WhatsApp and tel link
+  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '2348103859976';
+  // Tel link might need + if international, or local format. If it's a 234 string, replacing 234 with 0 is common for local calls in Nigeria.
+  const localPhone = supportPhone.startsWith('234') ? '0' + supportPhone.substring(3) : supportPhone;
+
   return (
-    <div id="order-form" className="max-w-2xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+    <div id="order-form" className="max-w-2xl mx-auto bg-yellow-100 rounded-xl shadow-2xl overflow-hidden border-2 border-yellow-400">
       {/* Form Header */}
       <div className="bg-slate-900 text-center py-8 px-6 text-white border-b-4 border-amber-500">
         <h2 className="text-3xl font-black tracking-tight mb-2 uppercase">Place Your Order Now</h2>
@@ -192,7 +197,7 @@ export default function OrderForm({ price }: { price?: number }) {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a 
-              href="https://wa.me/2348103859976" 
+              href={`https://wa.me/${supportPhone}?text=Hello Favour, I'm visiting your website and would like to make an inquiry about placing an order.`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-2 bg-[#25D366] text-white font-bold px-6 py-3 rounded-full hover:bg-[#20bd5a] transition-colors shadow-md"
@@ -202,11 +207,11 @@ export default function OrderForm({ price }: { price?: number }) {
             </a>
             
             <a 
-              href="tel:08103859976" 
+              href={`tel:${localPhone}`} 
               className="flex items-center gap-2 bg-slate-100 text-slate-800 font-bold px-6 py-3 rounded-full hover:bg-slate-200 transition-colors border border-slate-300"
             >
               <PhoneCall className="w-5 h-5" />
-              Call 08103859976
+              Call {localPhone}
             </a>
           </div>
         </div>
